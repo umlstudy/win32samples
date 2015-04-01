@@ -1,0 +1,16 @@
+1. 원격에 리파지터리 생성.
+2. 공유하고자 하는 로컬 디렉토리 git 초기화
+ -- git init
+3. 로컬 .gitignore 작성
+*.o
+*.exe
+/bin
+*.log
+..
+4. 로컬 git add --all
+5. 로컬 git commit -m "init"
+6. 로컬 리파지터리 리모트에 연결
+git remote add origin https://github.com/umlstudy/win32samples
+
+7. 리모트 내용 취득 git pull origin master
+8. 리모트 푸시 git push

@@ -18,7 +18,6 @@ RM=del
 MessageToString.o: MessageToString.cc
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-
 all: $(PROG)
 
 $(PROG): $(OBJS)
