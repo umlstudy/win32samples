@@ -1,0 +1,4 @@
+compile
+gcc -ansi -std=c++98 -Wall -o ex2.o -c ex2.cpp
+link
+gcc ex2.o -lstdc++ -o ex2.exe

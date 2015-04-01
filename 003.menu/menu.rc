@@ -1,0 +1,29 @@
+WIN_MENU MENU{
+	POPUP "ファイル"{
+		MENUITEM "開く", 40001
+		MENUITEM SEPARATOR
+		MENUITEM "保存", 40002
+		MENUITEM SEPARATOR
+		MENUITEM "終了", 40003
+	}
+	POPUP "編集"{
+		MENUITEM "切り取り", 40004
+		MENUITEM "コピー", 40005
+		MENUITEM "貼\\り付け", 40006
+	}
+	POPUP "表\\示"{
+		MENUITEM "ツールバー", 40007
+		MENUITEM SEPARATOR
+		POPUP"サブメニュー"{
+			MENUITEM "「イ」を表\\示", 40008
+			MENUITEM "「ロ」を表\\示", 40009
+			MENUITEM "「ハ」を表\\示", 40010
+		}
+		MENUITEM "ソ\\ース", 40011
+	}
+	POPUP "ヘルプ"{
+		MENUITEM "ヘルプ", 40012
+		MENUITEM SEPARATOR
+		MENUITEM "バージョン情報", 40013
+	}
+}
