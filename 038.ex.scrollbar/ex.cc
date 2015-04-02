@@ -39,6 +39,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 
 	WndClass.cbClsExtra=0;
 	WndClass.cbWndExtra=0;
+//	WndClass.hbrBackground=(HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	WndClass.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);
 	//WndClass.hCursor=LoadCursor(NULL,IDC_ARROW);
 	WndClass.hCursor=LoadCursor(hInstance,MAKEINTRESOURCE(IDC_DUCK));
@@ -80,64 +81,70 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 	return Message.wParam;
 }
 
-#include "MessageToString.hpp"
+#define ID_SCRRED 100
+#define ID_SCRGREEN 101
+#define ID_SCRBLUE 102
+HWND hRed,hGreen,hBlue;
+int Red,Green,Blue;
+
 LRESULT CALLBACK WndProc(HWND hWnd,UINT iMessage,WPARAM wParam,LPARAM lParam)
 {
 	HDC hdc;
 	PAINTSTRUCT ps;
-	static HWND c1,c2,c3,c4;
-	static BOOL ELLIPSE = FALSE;
-	CWindowsMessageToString msgConverter;
-	LPSTR lpszMsg = msgConverter.GetStringFromMsg( iMessage );
-	printf("%s\n", lpszMsg );
-
-
+	HBRUSH MyBrush, OldBrush;
+	int TempPos;
 	switch(iMessage) {
 	case WM_CREATE:
-		c1=CreateWindow("button","Draw Ellipse?",WS_CHILD | WS_VISIBLE |
-			BS_CHECKBOX,20,20,160,25,hWnd,(HMENU)0,g_hInst,NULL);
-		c2=CreateWindow("button","Good bye Message?",WS_CHILD | WS_VISIBLE |
-			BS_AUTOCHECKBOX,20,50,160,25,hWnd,(HMENU)1,g_hInst,NULL);
-		c3=CreateWindow("button","3State",WS_CHILD | WS_VISIBLE | BS_3STATE,
-			20,80,160,25,hWnd,(HMENU)2,g_hInst,NULL);
-		c4=CreateWindow("button","Auto 3State",WS_CHILD | WS_VISIBLE |
-			BS_AUTO3STATE,20,110,160,25,hWnd,(HMENU)3,g_hInst,NULL);
+		hRed=CreateWindow("scrollbar",NULL,WS_CHILD | WS_VISIBLE | SBS_HORZ,
+			10,10,200,20,hWnd,(HMENU)ID_SCRRED,g_hInst,NULL);
+		hGreen=CreateWindow("scrollbar",NULL,WS_CHILD | WS_VISIBLE | SBS_HORZ,
+			10,40,200,20,hWnd,(HMENU)ID_SCRGREEN,g_hInst,NULL);
+		hBlue=CreateWindow("scrollbar",NULL,WS_CHILD | WS_VISIBLE | SBS_HORZ,
+			10,70,200,20,hWnd,(HMENU)ID_SCRBLUE,g_hInst,NULL);
+		SetScrollRange(hRed,SB_CTL,0,255,TRUE);
+		SetScrollPos(hRed,SB_CTL,0,TRUE);
+		SetScrollRange(hGreen,SB_CTL,0,255,TRUE);
+		SetScrollPos(hGreen,SB_CTL,0,TRUE);
+		SetScrollRange(hBlue,SB_CTL,0,255,TRUE);
+		SetScrollPos(hBlue,SB_CTL,0,TRUE);
 		return 0;
-	case WM_COMMAND:
-		switch(LOWORD(wParam)) {
-		case 0:
-			if (SendMessage(c1,BM_GETCHECK,0,0)==BST_UNCHECKED) {
-				SendMessage(c1,BM_SETCHECK,BST_CHECKED,0);
-				ELLIPSE = TRUE;
-			}
-			else {
-				SendMessage(c1,BM_SETCHECK,BST_UNCHECKED,0);
-				ELLIPSE = FALSE;
-			}
-			InvalidateRect(hWnd, NULL, TRUE);
+	case WM_HSCROLL:
+		if ((HWND)lParam == hRed) TempPos = Red;
+		if ((HWND)lParam == hGreen) TempPos = Green;
+		if ((HWND)lParam == hBlue) TempPos = Blue;
+		switch (LOWORD(wParam)) {
+		case SB_LINELEFT:
+			TempPos=max(0,TempPos-1);
 			break;
-		case 2:
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_UNCHECKED)
-				SendMessage(c3,BM_SETCHECK,BST_CHECKED,0);
-			else
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_INDETERMINATE)
-				SendMessage(c3,BM_SETCHECK,BST_UNCHECKED,0);
-			else
-				SendMessage(c3,BM_SETCHECK,BST_INDETERMINATE,0);
+		case SB_LINERIGHT:
+			TempPos=min(255,TempPos+1);
+			break;
+		case SB_PAGELEFT:
+			TempPos=max(0,TempPos-10);
+			break;
+		case SB_PAGERIGHT:
+			TempPos=min(255,TempPos+10);
+			break;
+		case SB_THUMBTRACK:
+			TempPos=HIWORD(wParam);
 			break;
 		}
+		if ((HWND)lParam == hRed) Red=TempPos;
+		if ((HWND)lParam == hGreen) Green=TempPos;
+		if ((HWND)lParam == hBlue) Blue=TempPos;
+		SetScrollPos((HWND)lParam,SB_CTL,TempPos,TRUE);
+		InvalidateRect(hWnd,NULL,FALSE);
 		return 0;
 	case WM_PAINT:
 		hdc=BeginPaint(hWnd,&ps);
-		if (ELLIPSE == TRUE)
-			Ellipse(hdc,200,100,400,200);
-		else
-			Rectangle(hdc,200,100,400,200);
-		EndPaint(hWnd, &ps);
+		MyBrush=CreateSolidBrush(RGB(Red,Green,Blue));
+		OldBrush=(HBRUSH)SelectObject(hdc,MyBrush);
+		Rectangle(hdc,10,100,210,200);
+		SelectObject(hdc,OldBrush);
+		DeleteObject(MyBrush);
+		EndPaint(hWnd,&ps);
 		return 0;
 	case WM_DESTROY:
-		if (SendMessage(c2,BM_GETCHECK,0,0)==BST_CHECKED)
-			MessageBox(hWnd,"Good bye","Check",MB_OK);
 		PostQuitMessage(0);
 		return 0;
 	}

@@ -1,7 +1,8 @@
 
 SRC=ex.cc
 #OBJS=$(SRC:.c=.o)
-OBJS=ex.o exres.o MessageToString.o
+#OBJS=ex.o exres.o MessageToString.o
+OBJS=ex.o exres.o
 CC=gcc
 PROG=ex.exe
 RC=windres

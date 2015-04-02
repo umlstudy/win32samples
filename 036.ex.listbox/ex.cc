@@ -39,6 +39,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 
 	WndClass.cbClsExtra=0;
 	WndClass.cbWndExtra=0;
+//	WndClass.hbrBackground=(HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	WndClass.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);
 	//WndClass.hCursor=LoadCursor(NULL,IDC_ARROW);
 	WndClass.hCursor=LoadCursor(hInstance,MAKEINTRESOURCE(IDC_DUCK));
@@ -80,69 +81,39 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 	return Message.wParam;
 }
 
-#include "MessageToString.hpp"
+#define ID_LISTBOX 100
+char Items[][15]={"Apple","Orange","Melon","Graph","Strawberry"};
+char str[128];
+HWND hList;
 LRESULT CALLBACK WndProc(HWND hWnd,UINT iMessage,WPARAM wParam,LPARAM lParam)
 {
-	HDC hdc;
-	PAINTSTRUCT ps;
-	static HWND c1,c2,c3,c4;
-	static BOOL ELLIPSE = FALSE;
-	CWindowsMessageToString msgConverter;
-	LPSTR lpszMsg = msgConverter.GetStringFromMsg( iMessage );
-	printf("%s\n", lpszMsg );
-
-
+	int i;
 	switch(iMessage) {
 	case WM_CREATE:
-		c1=CreateWindow("button","Draw Ellipse?",WS_CHILD | WS_VISIBLE |
-			BS_CHECKBOX,20,20,160,25,hWnd,(HMENU)0,g_hInst,NULL);
-		c2=CreateWindow("button","Good bye Message?",WS_CHILD | WS_VISIBLE |
-			BS_AUTOCHECKBOX,20,50,160,25,hWnd,(HMENU)1,g_hInst,NULL);
-		c3=CreateWindow("button","3State",WS_CHILD | WS_VISIBLE | BS_3STATE,
-			20,80,160,25,hWnd,(HMENU)2,g_hInst,NULL);
-		c4=CreateWindow("button","Auto 3State",WS_CHILD | WS_VISIBLE |
-			BS_AUTO3STATE,20,110,160,25,hWnd,(HMENU)3,g_hInst,NULL);
+		hList=CreateWindow("listbox",NULL,WS_CHILD | WS_VISIBLE | WS_BORDER |
+		LBS_NOTIFY,10,10,100,200,hWnd,(HMENU)ID_LISTBOX,g_hInst,NULL);
+		for (i=0;i<5;i++)
+			SendMessage(hList,LB_ADDSTRING,0,(LPARAM)Items[i]);
 		return 0;
 	case WM_COMMAND:
-		switch(LOWORD(wParam)) {
-		case 0:
-			if (SendMessage(c1,BM_GETCHECK,0,0)==BST_UNCHECKED) {
-				SendMessage(c1,BM_SETCHECK,BST_CHECKED,0);
-				ELLIPSE = TRUE;
+		switch (LOWORD(wParam)) {
+		case ID_LISTBOX:
+			switch (HIWORD(wParam)) {
+			case LBN_SELCHANGE:
+				i=SendMessage(hList, LB_GETCURSEL,0,0);
+				SendMessage(hList, LB_GETTEXT, i, (LPARAM)str);
+				SetWindowText(hWnd, str);
+				break;
 			}
-			else {
-				SendMessage(c1,BM_SETCHECK,BST_UNCHECKED,0);
-				ELLIPSE = FALSE;
-			}
-			InvalidateRect(hWnd, NULL, TRUE);
-			break;
-		case 2:
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_UNCHECKED)
-				SendMessage(c3,BM_SETCHECK,BST_CHECKED,0);
-			else
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_INDETERMINATE)
-				SendMessage(c3,BM_SETCHECK,BST_UNCHECKED,0);
-			else
-				SendMessage(c3,BM_SETCHECK,BST_INDETERMINATE,0);
-			break;
 		}
 		return 0;
-	case WM_PAINT:
-		hdc=BeginPaint(hWnd,&ps);
-		if (ELLIPSE == TRUE)
-			Ellipse(hdc,200,100,400,200);
-		else
-			Rectangle(hdc,200,100,400,200);
-		EndPaint(hWnd, &ps);
-		return 0;
 	case WM_DESTROY:
-		if (SendMessage(c2,BM_GETCHECK,0,0)==BST_CHECKED)
-			MessageBox(hWnd,"Good bye","Check",MB_OK);
 		PostQuitMessage(0);
 		return 0;
 	}
 	return(DefWindowProc(hWnd,iMessage,wParam,lParam));
 }
+
 
 /*
  *

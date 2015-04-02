@@ -13,12 +13,18 @@ extern "C" {
 extern LRESULT CALLBACK WndProc(HWND,UINT,WPARAM,LPARAM);
 extern int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdParam,int nCmdShow);
 extern LRESULT CALLBACK WndProc(HWND hWnd,UINT iMessage,WPARAM wParam,LPARAM lParam);
+//extern BOOL CALLBACK InfoDlgProc(HWND hDlg,UINT iMessage,WPARAM wParam,LPARAM lParam);
+extern BOOL CALLBACK MlessDlgProc(HWND hDlg,UINT iMessage,WPARAM wParam,LPARAM lParam);
 #ifdef __cplusplus
 }
 #endif
 
 HINSTANCE g_hInst;
-LPSTR lpszClass="CHECKBOX";
+LPSTR lpszClass="Mless";
+int x;
+int y;
+char str[128];
+HWND hDlg;
 
 #define IDR_MENU1 10000
 #define IDM_FILE 10001
@@ -30,6 +36,7 @@ LPSTR lpszClass="CHECKBOX";
 #define IDS_STRING1 50000
 #define IDB_BITMAP1 101
 
+HWND hMainWnd;
 int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdParam,int nCmdShow)
 {
 	HWND hWnd;
@@ -39,6 +46,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 
 	WndClass.cbClsExtra=0;
 	WndClass.cbWndExtra=0;
+//	WndClass.hbrBackground=(HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	WndClass.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);
 	//WndClass.hCursor=LoadCursor(NULL,IDC_ARROW);
 	WndClass.hCursor=LoadCursor(hInstance,MAKEINTRESOURCE(IDC_DUCK));
@@ -61,6 +69,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 	printf("window created.\n");
 
 	ShowWindow(hWnd,nCmdShow);
+	hMainWnd=hWnd;
 	printf("window showed.\n");
 
 	HACCEL hAccel;
@@ -80,69 +89,96 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 	return Message.wParam;
 }
 
-#include "MessageToString.hpp"
+#define IDD_DIALOG 1000
+#define ID_CHANGE 1002
+#define ID_CLOSE 1003
+#define IDC_X 1001
+#define IDC_STR 1004
+#define IDC_Y 1005
 LRESULT CALLBACK WndProc(HWND hWnd,UINT iMessage,WPARAM wParam,LPARAM lParam)
 {
 	HDC hdc;
 	PAINTSTRUCT ps;
-	static HWND c1,c2,c3,c4;
-	static BOOL ELLIPSE = FALSE;
-	CWindowsMessageToString msgConverter;
-	LPSTR lpszMsg = msgConverter.GetStringFromMsg( iMessage );
-	printf("%s\n", lpszMsg );
-
-
 	switch(iMessage) {
 	case WM_CREATE:
-		c1=CreateWindow("button","Draw Ellipse?",WS_CHILD | WS_VISIBLE |
-			BS_CHECKBOX,20,20,160,25,hWnd,(HMENU)0,g_hInst,NULL);
-		c2=CreateWindow("button","Good bye Message?",WS_CHILD | WS_VISIBLE |
-			BS_AUTOCHECKBOX,20,50,160,25,hWnd,(HMENU)1,g_hInst,NULL);
-		c3=CreateWindow("button","3State",WS_CHILD | WS_VISIBLE | BS_3STATE,
-			20,80,160,25,hWnd,(HMENU)2,g_hInst,NULL);
-		c4=CreateWindow("button","Auto 3State",WS_CHILD | WS_VISIBLE |
-			BS_AUTO3STATE,20,110,160,25,hWnd,(HMENU)3,g_hInst,NULL);
-		return 0;
-	case WM_COMMAND:
-		switch(LOWORD(wParam)) {
-		case 0:
-			if (SendMessage(c1,BM_GETCHECK,0,0)==BST_UNCHECKED) {
-				SendMessage(c1,BM_SETCHECK,BST_CHECKED,0);
-				ELLIPSE = TRUE;
-			}
-			else {
-				SendMessage(c1,BM_SETCHECK,BST_UNCHECKED,0);
-				ELLIPSE = FALSE;
-			}
-			InvalidateRect(hWnd, NULL, TRUE);
-			break;
-		case 2:
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_UNCHECKED)
-				SendMessage(c3,BM_SETCHECK,BST_CHECKED,0);
-			else
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_INDETERMINATE)
-				SendMessage(c3,BM_SETCHECK,BST_UNCHECKED,0);
-			else
-				SendMessage(c3,BM_SETCHECK,BST_INDETERMINATE,0);
-			break;
-		}
+		x=100;
+		y=100;
+		strcpy(str,"String");
 		return 0;
 	case WM_PAINT:
-		hdc=BeginPaint(hWnd,&ps);
-		if (ELLIPSE == TRUE)
-			Ellipse(hdc,200,100,400,200);
-		else
-			Rectangle(hdc,200,100,400,200);
+		hdc=BeginPaint(hWnd, &ps);
+		TextOut(hdc,x,y,str,strlen(str));
 		EndPaint(hWnd, &ps);
 		return 0;
+	case WM_LBUTTONDOWN:
+//		if (DialogBox(g_hInst,MAKEINTRESOURCE(IDD_DIALOG),
+//			hWnd,InfoDlgProc)==1)
+//			InvalidateRect(hWnd, NULL, TRUE);
+//		return 0;
+		if (!IsWindow(hDlg)) {
+			hDlg=CreateDialog(g_hInst,MAKEINTRESOURCE(IDD_DIALOG),
+					hWnd,MlessDlgProc);
+				ShowWindow(hDlg,SW_SHOW);
+		}
+		return 0;
 	case WM_DESTROY:
-		if (SendMessage(c2,BM_GETCHECK,0,0)==BST_CHECKED)
-			MessageBox(hWnd,"Good bye","Check",MB_OK);
 		PostQuitMessage(0);
 		return 0;
 	}
 	return(DefWindowProc(hWnd,iMessage,wParam,lParam));
 }
+
+#include "MessageToString.hpp"
+BOOL CALLBACK MlessDlgProc(HWND hDlg,UINT iMessage,WPARAM wParam,LPARAM lParam)
+{
+	switch(iMessage) {
+	case WM_INITDIALOG:
+		SetDlgItemText(hDlg,IDC_STR,str);
+		SetDlgItemInt(hDlg,IDC_X,x,FALSE);
+		SetDlgItemInt(hDlg,IDC_Y,y,FALSE);
+		return TRUE;
+	case WM_COMMAND:
+		switch (wParam) {
+		case ID_CHANGE:
+			GetDlgItemText(hDlg,IDC_STR,str,128);
+			x=GetDlgItemInt(hDlg,IDC_X,NULL,FALSE);
+			y=GetDlgItemInt(hDlg,IDC_Y,NULL,FALSE);
+			InvalidateRect(hMainWnd,NULL,TRUE);
+			return TRUE;
+		case ID_CLOSE:
+			DestroyWindow(hDlg);
+			hDlg=NULL;
+			return TRUE;
+		}
+		break;
+	}
+return FALSE;
+}
+//BOOL CALLBACK InfoDlgProc(HWND hDlg,UINT iMessage,WPARAM wParam,LPARAM lParam)
+//{
+//	switch(iMessage) {
+//	case WM_INITDIALOG:
+//		SetDlgItemText(hDlg,IDC_STR,str);
+//		SetDlgItemInt(hDlg,IDC_X,x,FALSE);
+//		SetDlgItemInt(hDlg,IDC_Y,y,FALSE);
+//		return TRUE;
+//	case WM_COMMAND:
+//		switch (wParam) {
+//		case IDC_OK:
+//			GetDlgItemText(hDlg,IDC_STR, str,128);
+//			x=GetDlgItemInt(hDlg,IDC_X,NULL,FALSE);
+//			y=GetDlgItemInt(hDlg,IDC_Y,NULL,FALSE);
+//			EndDialog(hDlg,1);
+//			return TRUE;
+//		case IDC_CANCEL:
+//			EndDialog(hDlg,0);
+//			return TRUE;
+//		}
+//		break;
+//	}
+//return FALSE;
+//}
+
 
 /*
  *

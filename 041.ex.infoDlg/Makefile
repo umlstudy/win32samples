@@ -1,6 +1,7 @@
 
 SRC=ex.cc
 #OBJS=$(SRC:.c=.o)
+#OBJS=ex.o exres.o
 OBJS=ex.o exres.o MessageToString.o
 CC=gcc
 PROG=ex.exe

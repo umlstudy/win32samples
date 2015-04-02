@@ -4,7 +4,10 @@
 3. 로컬 .gitignore 작성
 *.o
 *.exe
-/bin
+bin/
+/TODO # file
+doc/*.txt
+build/
 *.log
 ..
 4. 로컬 git add --all

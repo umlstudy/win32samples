@@ -39,6 +39,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 
 	WndClass.cbClsExtra=0;
 	WndClass.cbWndExtra=0;
+//	WndClass.hbrBackground=(HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	WndClass.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);
 	//WndClass.hCursor=LoadCursor(NULL,IDC_ARROW);
 	WndClass.hCursor=LoadCursor(hInstance,MAKEINTRESOURCE(IDC_DUCK));
@@ -80,70 +81,34 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpszCmdP
 	return Message.wParam;
 }
 
-#include "MessageToString.hpp"
+// 에디트는 최대 32k까지의 문자열을 편집할 수 있으며 여러줄 편집, 블럭선택, 클립보드 지원 기능까지 다양한 기능을 가지고 있는데 비해 사용하기는 비교적 쉬운편에 속한다. 14장에서 에디트에 대한 상세한 프로그래밍 방법을 익혀 보도록 하자.
+// 컨트롤이 윈도우라는 결정적인 증거는 스스로 메시지를 처리할 수 있는 능력이 있다는 점이다.
+#define ID_EDIT 100
+HWND hEdit;
+char str[128];
 LRESULT CALLBACK WndProc(HWND hWnd,UINT iMessage,WPARAM wParam,LPARAM lParam)
 {
-	HDC hdc;
-	PAINTSTRUCT ps;
-	static HWND c1,c2,c3,c4;
-	static BOOL ELLIPSE = FALSE;
-	CWindowsMessageToString msgConverter;
-	LPSTR lpszMsg = msgConverter.GetStringFromMsg( iMessage );
-	printf("%s\n", lpszMsg );
-
-
 	switch(iMessage) {
 	case WM_CREATE:
-		c1=CreateWindow("button","Draw Ellipse?",WS_CHILD | WS_VISIBLE |
-			BS_CHECKBOX,20,20,160,25,hWnd,(HMENU)0,g_hInst,NULL);
-		c2=CreateWindow("button","Good bye Message?",WS_CHILD | WS_VISIBLE |
-			BS_AUTOCHECKBOX,20,50,160,25,hWnd,(HMENU)1,g_hInst,NULL);
-		c3=CreateWindow("button","3State",WS_CHILD | WS_VISIBLE | BS_3STATE,
-			20,80,160,25,hWnd,(HMENU)2,g_hInst,NULL);
-		c4=CreateWindow("button","Auto 3State",WS_CHILD | WS_VISIBLE |
-			BS_AUTO3STATE,20,110,160,25,hWnd,(HMENU)3,g_hInst,NULL);
+		hEdit=CreateWindow("edit",NULL,WS_CHILD | WS_VISIBLE | WS_BORDER |
+		ES_AUTOHSCROLL,10,10,200,25,hWnd,(HMENU)ID_EDIT,g_hInst,NULL);
 		return 0;
 	case WM_COMMAND:
-		switch(LOWORD(wParam)) {
-		case 0:
-			if (SendMessage(c1,BM_GETCHECK,0,0)==BST_UNCHECKED) {
-				SendMessage(c1,BM_SETCHECK,BST_CHECKED,0);
-				ELLIPSE = TRUE;
+		switch (LOWORD(wParam)) {
+		case ID_EDIT:
+			switch (HIWORD(wParam)) {
+			case EN_CHANGE:
+				GetWindowText(hEdit,str,128);
+				SetWindowText(hWnd,str);
 			}
-			else {
-				SendMessage(c1,BM_SETCHECK,BST_UNCHECKED,0);
-				ELLIPSE = FALSE;
-			}
-			InvalidateRect(hWnd, NULL, TRUE);
-			break;
-		case 2:
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_UNCHECKED)
-				SendMessage(c3,BM_SETCHECK,BST_CHECKED,0);
-			else
-			if (SendMessage(c3,BM_GETCHECK,0,0)==BST_INDETERMINATE)
-				SendMessage(c3,BM_SETCHECK,BST_UNCHECKED,0);
-			else
-				SendMessage(c3,BM_SETCHECK,BST_INDETERMINATE,0);
-			break;
 		}
 		return 0;
-	case WM_PAINT:
-		hdc=BeginPaint(hWnd,&ps);
-		if (ELLIPSE == TRUE)
-			Ellipse(hdc,200,100,400,200);
-		else
-			Rectangle(hdc,200,100,400,200);
-		EndPaint(hWnd, &ps);
-		return 0;
 	case WM_DESTROY:
-		if (SendMessage(c2,BM_GETCHECK,0,0)==BST_CHECKED)
-			MessageBox(hWnd,"Good bye","Check",MB_OK);
 		PostQuitMessage(0);
 		return 0;
 	}
 	return(DefWindowProc(hWnd,iMessage,wParam,lParam));
 }
-
 /*
  *
  * 	case WM_COMMAND:
