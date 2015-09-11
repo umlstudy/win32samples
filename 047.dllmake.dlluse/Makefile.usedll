@@ -1,0 +1,15 @@
+# http://d.hatena.ne.jp/y2q_actionman/20070628/p1
+# make -f makefile.makedll all
+
+SRC=dllSampleTest.c
+PROG=dllSampleTest.exe
+
+CC=gcc
+
+all: $(PROG)
+
+$(PROG): $(SRC)
+	$(CC) -o $@ $<
+
+clean:
+	del *.exe

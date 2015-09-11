@@ -1,0 +1,25 @@
+
+# make -f makefile.makedll all
+
+SRC=dllSample.c
+OBJS=dllSample.o
+PROG=dllSample.dll
+
+CC=gcc
+#CFLAGS=-Wall -O3 -DBUILD_DLL
+CFLAGS=
+#LDFLAGS=-mwindows -shared
+LDFLAGS=-shared
+
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(PROG): $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
+
+all: $(PROG)
+
+clean:
+	del dllSample.o dllSample.dll libdllSample.lib
+
+#	$(CC) $(OBJS) $(LDFLAGS) -o $@ -Wl,--out-implib,libdllSample.lib
